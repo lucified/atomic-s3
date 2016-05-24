@@ -79,7 +79,7 @@ atomicS3.publish(opts, (err, res) => {
 - `bucket`: Name of Amazon S3 bucket in which to publish. Required.
 - `verbose` Set to true with `--verbose` enable verbose output.
 
-## Options available with config object and Javascript API
+### Options only for config object
 
 - `path`: Local path to folder to publish. 
 - `s3options`: [S3 options](<http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#constructor-property). The most important options are `region` and `params.Bucket`. (See usage example.)
