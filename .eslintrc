@@ -1,0 +1,8 @@
+{
+  "extends": "airbnb",
+  "parser": "babel-eslint",
+  "rules": {
+    "no-unused-vars": [2, {"args": "all", "argsIgnorePattern": "^_"}],
+    "comma-dangle": [1, "always-multiline"]
+  }
+}
