@@ -1,5 +1,4 @@
 
-# https://gist.github.com/josephabrahams/46a638fcdd97701aef33
-machine:
-  post:
-    - nvm use && nvm alias default $(nvm current)
+dependencies:
+  pre:
+    - nvm install && nvm use && nvm alias default $(nvm current)
