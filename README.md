@@ -77,6 +77,7 @@ atomicS3.publish(opts, (err, res) => {
 ### Options only for command line API
 
 - `bucket`: Name of Amazon S3 bucket in which to publish. Required.
+- `region`: Amazon S3 region.
 - `verbose` Set to true with `--verbose` enable verbose output.
 
 ### Options only for config object
