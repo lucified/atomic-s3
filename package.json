@@ -1,6 +1,6 @@
 {
   "name": "atomic-s3",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Deploy projects 'atomically' to S3",
   "main": "lib/main.js",
   "engines": {
