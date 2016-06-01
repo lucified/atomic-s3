@@ -87,7 +87,12 @@ atomicS3.publish(opts, (err, res) => {
 
 ## Test
  
+Make sure you have the correct node version
 ```shell
-nvm use # tests require node version 6, defined in .nvmrc
+nvm use
+```
+
+Then run tests with
+```shell
 npm test
 ```
