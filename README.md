@@ -84,3 +84,10 @@ atomicS3.publish(opts, (err, res) => {
 
 - `path`: Local path to folder to publish. 
 - `s3options`: [S3 options](<http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#constructor-property). The most important options are `region` and `params.Bucket`. (See usage example.)
+
+## Test
+ 
+```shell
+nvm use # tests require node version 6, defined in .nvmrc
+npm test
+```
