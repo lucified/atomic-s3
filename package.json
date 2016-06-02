@@ -11,6 +11,9 @@
     "compile": "babel --presets es2015,stage-0 -d lib/ src/",
     "prepublish": "npm run compile"
   },
+  "bin": {
+    "atomic-s3": "lib/main-cli.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/lucified/atomic-s3.git"
