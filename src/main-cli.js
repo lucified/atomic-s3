@@ -24,7 +24,7 @@ if (fileExists(configFile)) {
   if (args.verbose) {
     console.log(`Using config from ${chalk.blue(resolvedPath)}`);
   }
-  opts = require(resolvedPath);
+  opts = require(resolvedPath); // eslint-disable-line
 } else if (args.config) {
   console.log(`[Error] ${configFile} does not exist`);
   process.exit(1);
@@ -71,7 +71,7 @@ if (args.verbose) {
   console.log(table.toString());
 }
 
-atomicS3.publish(opts, (err) => {
+atomicS3.publish(opts, err => {
   if (err) {
     console.log(`${chalk.red('[Error]')} ${err}`);
     process.exit(1);

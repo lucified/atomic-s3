@@ -69,14 +69,15 @@ function s3Init(file, s3Folder) {
  * Get file streams for all entry points assets
  * (assets without rev urls)
  */
-function entryPointStream(sourceFolder, entryPoints, s3Folder) {
+function entryPointStream(sourceFolder, entryPoints, s3Folder, gzip) {
   return vfs.src(entryPoints, {
     cwd: sourceFolder || 'dist',
   })
   .pipe(through2((file, _enc, cb) => {
     s3Init(file, s3Folder);
     cb(null, file);
-  }));
+  }))
+  .pipe(gzip ? awspublish.gzip({ ext: '' }) : through2());
 }
 
 
@@ -87,7 +88,7 @@ function entryPointStream(sourceFolder, entryPoints, s3Folder) {
  * targetFolder -- folder to publish into
  * maxAge -- expiry age for header
  */
-function assetStream(sourceFolder, entryPoints, maxAge, s3Folder) {
+function assetStream(sourceFolder, entryPoints, maxAge, s3Folder, patterns, gzip) {
   if (maxAge === null || !isFinite(maxAge)) {
     maxAge = 3600; // eslint-disable-line no-param-reassign
   }
@@ -97,17 +98,18 @@ function assetStream(sourceFolder, entryPoints, maxAge, s3Folder) {
   };
 
   // Select everything BUT the entrypoints
-  const src = entryPoints.map(f => `!${f}`);
-  src.unshift('**/*.*');
+  let src = entryPoints.map(f => `!${f}`);
+  src = (patterns || ['**/*.*']).concat(src);
 
   return vfs.src(src, {
     cwd: sourceFolder || 'dist',
   })
-    .pipe(through2((file, _enc, cb) => {
-      s3Init(file, s3Folder);
-      Object.assign(file.s3.headers, headers);
-      cb(null, file);
-    }));
+  .pipe(through2((file, _enc, cb) => {
+    s3Init(file, s3Folder);
+    Object.assign(file.s3.headers, headers);
+    cb(null, file);
+  }))
+  .pipe(gzip ? awspublish.gzip({ ext: '' }) : through2());
 }
 
 
@@ -121,7 +123,7 @@ function publishInSeries(streams, opts) {
     objectMode: true,
   });
 
-  for (let i = 0; i < streams.length - 1; i++) {
+  for (let i = 0; i < streams.length - 1; i++) { // eslint-disable-line
     const nextStream = streams[i + 1];
     streams[i].once('end', () => nextStream.pipe(output));
   }
@@ -148,16 +150,17 @@ function publish(options, cb) {
     throw (Error(errors));
   }
 
-  const asset = assetStream(opts.path, opts.entryPoints, opts.maxAge, '');
-  const entry = entryPointStream(opts.path, opts.entryPoints);
+  const compressedAssets = assetStream(opts.path, opts.entryPoints, opts.maxAge, '', ['**/*.js', '**/*.json', '**/*.css', '**/*.svg'], true);
+  const assets = assetStream(opts.path, opts.entryPoints, opts.maxAge, '', ['**/*.*', '!**/*.js', '!**/*.json', '!**/*.css', '!**/*.svg'], false);
+  const entry = entryPointStream(opts.path, opts.entryPoints, '', true);
 
   // It is important to do deploy in series to
   // achieve an "atomic" update. uploading index.html
   // before hashed assets would be bad -- JOJ
 
-  publishInSeries([asset, entry], opts)
+  publishInSeries([compressedAssets, assets, entry], opts)
     .on('end', () => { cb(false); })
-    .on('error', (err) => { cb(err); });
+    .on('error', err => { cb(err); });
 }
 
 
