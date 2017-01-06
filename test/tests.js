@@ -34,7 +34,7 @@ describe('asset-stream', () => {
     s3.assetStream('test/dist', entryPoints)
       .pipe(es.writeArray((err, files) => {
         expect(err).not.to.exist;
-        expect(files).to.have.length(5);
+        expect(files).to.have.length(6);
         done();
       }));
   });
@@ -78,7 +78,7 @@ describe('publish-stream', () => {
       .pipe(es.writeArray((err, files) => {
         expect(err).not.to.exist;
         // inspect(files.map(f => f.s3));
-        expect(files).to.have.length(12);
+        expect(files).to.have.length(13);
         expect(files).to.have.length(entries.length + assets.length);
         for (let i = assets.length - 1; i >= 0; i--) { // first assets
           expect(assets[i].path).to.equal(files[i].path);
