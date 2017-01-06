@@ -7,9 +7,7 @@ const s3 = require('../src/main');
 const through2 = require('through2').obj;
 const AWS = require('aws-sdk');
 
-
 AWS.config.update({ region: process.env.AWS_REGION || 'eu-west-1' });
-
 
 // const inspect = (obj) => console.log(require('util').inspect(obj,{ depth: null })); // eslint-disable-line
 
@@ -20,11 +18,9 @@ const entryPoints = [
   '*.{png,ico}',
 ];
 
-
 describe('entrypoint-stream', () => {
   it('contains the entrypoints', done => {
     s3.entryPointStream('test/dist', entryPoints)
-      // .pipe(debug())
       .pipe(es.writeArray((err, files) => {
         expect(err).not.to.exist;
         expect(files).to.have.length(7);
@@ -33,11 +29,9 @@ describe('entrypoint-stream', () => {
   });
 });
 
-
 describe('asset-stream', () => {
   it('contains everything else', done => {
     s3.assetStream('test/dist', entryPoints)
-      // .pipe(debug())
       .pipe(es.writeArray((err, files) => {
         expect(err).not.to.exist;
         expect(files).to.have.length(5);
@@ -46,7 +40,6 @@ describe('asset-stream', () => {
   });
   it('can compress', done => {
     s3.assetStream('test/dist', entryPoints, undefined, undefined, ['**/*.js'], true)
-      // .pipe(debug())
       .pipe(es.writeArray((err, files) => {
         expect(err).not.to.exist;
         expect(files).to.have.length(2);
@@ -55,7 +48,6 @@ describe('asset-stream', () => {
       }));
   });
 });
-
 
 describe('publish-stream', () => {
   it('contains everything in correct order', done => {
