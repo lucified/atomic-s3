@@ -1,6 +1,6 @@
 
 module.exports = {
-  path: 'dist',
+  path: 'test/dist',
   s3options: {
     params: {
       Bucket: 'lucify-test-bucket',
