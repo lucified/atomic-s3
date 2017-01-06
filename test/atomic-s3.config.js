@@ -1,9 +1,9 @@
 
 module.exports = {
-  path: 'dist',
+  path: 'test/dist',
   s3options: {
     params: {
-      Bucket: 'lucify-test',
+      Bucket: 'lucify-test-bucket',
     },
     region: 'eu-west-1',
   },

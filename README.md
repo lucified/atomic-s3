@@ -1,9 +1,14 @@
 
 # Deploy projects 'atomically' to S3
 
-A simple utility for deploying projects pseudo-atomically to Amazon S3. It first uploads assets that have content hashes, and only then uploads entry points assets like `index.html`. 
+A simple utility for deploying projects pseudo-atomically to Amazon S3.
+It first uploads assets that have content hashes,
+and only then uploads entry points assets like `index.html`.
 
 Assets that are not entry points are also assigned a `max-age` header.
+If not entry points, files of type `css`, `json`, `js` and `svg` are
+compressed with gzip and the necessary S3 object metadata is added to
+allow them to be served properly.
 
 ## Install
 
@@ -60,7 +65,7 @@ atomicS3.publish(opts, (err, res) => {
   if (err) {
     console.log(`Publish failed: ${err}`);
     return;
-  } 
+  }
   console.log('Project published.');
 });
 ```
@@ -69,7 +74,7 @@ atomicS3.publish(opts, (err, res) => {
 
 ### Common options
 
-- `path`: Local path to folder to publish. 
+- `path`: Local path to folder to publish.
 - `entryPoints`: List of node glob patterns that together match all assets that *are* entry points, i.e. assets that do not have content hashes. Defaults to `['**/*.html']`, which matches only html files.
 - `maxAge`: Caching header to apply for assets that are not entry points. Defaults to `3600`.
 - `force`: Disable cache.
@@ -82,11 +87,11 @@ atomicS3.publish(opts, (err, res) => {
 
 ### Options only for config object
 
-- `path`: Local path to folder to publish. 
+- `path`: Local path to folder to publish.
 - `s3options`: [S3 options](<http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#constructor-property). The most important options are `region` and `params.Bucket`. (See usage example.)
 
 ## Test
- 
+
 Make sure you have the correct node version
 ```shell
 nvm use
@@ -95,4 +100,14 @@ nvm use
 Then run tests with
 ```shell
 npm test
+```
+
+### Testing against real infrastructure
+
+Make sure that necessary AWS credentials are in place
+for the bucket configured in `test/atomic-s3.config.js`
+and run the following in the project root:
+
+```bash
+node src/main-cli.js --config=test/atomic-s3.config.js --verbose
 ```
