@@ -1,1 +1,2 @@
+
 document.write('JAVASCRIIIPT');
