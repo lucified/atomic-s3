@@ -150,15 +150,19 @@ function publish(options, cb) {
     throw (Error(errors));
   }
 
-  const compressedAssets = assetStream(opts.path, opts.entryPoints, opts.maxAge, '', ['**/*.js', '**/*.json', '**/*.css', '**/*.svg'], true);
-  const assets = assetStream(opts.path, opts.entryPoints, opts.maxAge, '', ['**/*.*', '!**/*.js', '!**/*.json', '!**/*.css', '!**/*.svg'], false);
+  // Temporarily disable compression until we can fix it
+
+  //const compressedAssets = assetStream(opts.path, opts.entryPoints, opts.maxAge, '', ['**/*.js', '**/*.json', '**/*.css', '**/*.svg'], true);
+  //const assets = assetStream(opts.path, opts.entryPoints, opts.maxAge, '', ['**/*.*', '!**/*.js', '!**/*.json', '!**/*.css', '!**/*.svg'], false);
+
+  const assets = assetStream(opts.path, opts.entryPoints, opts.maxAge, '', ['**/*.*'], false);
   const entry = entryPointStream(opts.path, opts.entryPoints, '', true);
 
   // It is important to do deploy in series to
   // achieve an "atomic" update. uploading index.html
   // before hashed assets would be bad -- JOJ
 
-  publishInSeries([compressedAssets, assets, entry], opts)
+  publishInSeries([assets, entry], opts)
     .on('end', () => { cb(false); })
     .on('error', err => { cb(err); });
 }
