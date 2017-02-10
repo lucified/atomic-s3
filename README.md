@@ -94,7 +94,7 @@ atomicS3.publish(opts, (err, res) => {
 
 Make sure you have the correct node version
 ```shell
-nvm use
+npm use
 ```
 
 Then run tests with
