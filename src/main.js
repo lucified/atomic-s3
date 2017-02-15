@@ -4,16 +4,16 @@ const del = require('del');
 const vfs = require('vinyl-fs');
 const path = require('path');
 const through2 = require('through2').obj;
-const stream = require('stream');
+const merge2 = require('merge2');
 
 const prepareOptions = require('./prepare-options');
 const validateOptions = require('./validate-options');
 
 /*
- * Publish the given source files to AWS
- * with the given headers
+ * Get publishStream for publishing files AWS with given
+ * headers, and a related awspublish reporter stream
  */
-function publishToS3(publisher, simulate, force) {
+function prepareStreams(publisher, simulate, force) {
   if (force) {
     del.sync('./.awspublish-*');
   }
@@ -29,26 +29,25 @@ function publishToS3(publisher, simulate, force) {
   // and to maybe continue it, i.e. to access its last segment. So we're returning
   // an array with the first and last segments of this pipeline.
 
-  const first = publisher.publish({ 'x-amz-acl': 'private' }, {
+  const publishStream = publisher.publish({ 'x-amz-acl': 'private' }, {
     force,
     simulate: simulate === true,
   });
   let cache = null;
   if (!force) {
-    cache = first.pipe(publisher.cache());
+    cache = publishStream.pipe(publisher.cache());
   }
-  let reporter = awspublish.reporter();
+  let reporterStream = awspublish.reporter();
   if (simulate === true) {
-    reporter = through2((file, _enc, cb) => {
+    reporterStream = through2((file, _enc, cb) => {
       console.log(`s3://${bucket}/${file.s3.path}`); // eslint-disable-line
       console.log(file.s3.headers); // eslint-disable-line
       cb(null, file);
     });
   }
-  const last = (cache || first).pipe(reporter);
-  return [first, last];
+  (cache || publishStream).pipe(reporterStream);
+  return { publishStream, reporterStream };
 }
-
 
 //
 // https://github.com/jussi-kalliokoski/gulp-awspublish-router/blob/master/lib/utils/initFile.js
@@ -63,7 +62,6 @@ function s3Init(file, s3Folder) {
     .replace(file.base, s3Folder || '')
     .replace(new RegExp(`\\${path.sep}g`), '/');
 }
-
 
 /*
  * Get file streams for all entry points assets
@@ -112,36 +110,23 @@ function assetStream(sourceFolder, entryPoints, maxAge, s3Folder, patterns, gzip
   .pipe(gzip ? awspublish.gzip({ ext: '' }) : through2());
 }
 
-
+/*
+ * Publish given streams in series and return
+ * related awspublish reporter stream
+ */
 function publishInSeries(streams, opts) {
-  // We want to construct a new stream that combines others
-  // sequentially. We pipe to it the first one, passing the option end: false,
-  // listen for the 'end' event of the first stream and then pipe it the second one,
-  // not passing the end option.
-
-  const output = stream.PassThrough({ // eslint-disable-line new-cap
-    objectMode: true,
-  });
-
-  for (let i = 0; i < streams.length - 1; i++) { // eslint-disable-line
-    const nextStream = streams[i + 1];
-    streams[i].once('end', () => nextStream.pipe(output));
-  }
+  const combinedStream = merge2(...streams);
 
   const publisher = awspublish.create(opts.s3options);
-  const s3 = publishToS3(publisher,
+  const { publishStream, reporterStream } = prepareStreams(
+    publisher,
     opts.simulateDeployment || false,
-    opts.forceDeployment || false); // we get the first and last segments of the pipeline
+    opts.forceDeployment || false
+  );
 
-  streams[0]
-    .pipe(output, {
-      end: false,
-    })
-    .pipe(s3[0]);
-
-  return s3[1];
+  combinedStream.pipe(publishStream);
+  return reporterStream;
 }
-
 
 function publish(options, cb) {
   const opts = prepareOptions(options);
@@ -150,28 +135,23 @@ function publish(options, cb) {
     throw (Error(errors));
   }
 
-  // Temporarily disable compression until we can fix it
-
-  //const compressedAssets = assetStream(opts.path, opts.entryPoints, opts.maxAge, '', ['**/*.js', '**/*.json', '**/*.css', '**/*.svg'], true);
-  //const assets = assetStream(opts.path, opts.entryPoints, opts.maxAge, '', ['**/*.*', '!**/*.js', '!**/*.json', '!**/*.css', '!**/*.svg'], false);
-
-  const assets = assetStream(opts.path, opts.entryPoints, opts.maxAge, '', ['**/*.*'], false);
+  const compressedAssets = assetStream(opts.path, opts.entryPoints, opts.maxAge, '', ['**/*.js', '**/*.json', '**/*.css', '**/*.svg'], true);
+  const assets = assetStream(opts.path, opts.entryPoints, opts.maxAge, '', ['**/*.*', '!**/*.js', '!**/*.json', '!**/*.css', '!**/*.svg'], false);
   const entry = entryPointStream(opts.path, opts.entryPoints, '', true);
 
   // It is important to do deploy in series to
   // achieve an "atomic" update. uploading index.html
   // before hashed assets would be bad -- JOJ
 
-  publishInSeries([assets, entry], opts)
+  publishInSeries([compressedAssets, assets, entry], opts)
     .on('end', () => { cb(false); })
     .on('error', err => { cb(err); });
 }
 
-
 module.exports = {
   entryPointStream,
   assetStream,
-  publishToS3,
+  prepareStreams,
   publishInSeries,
   publish,
 };
