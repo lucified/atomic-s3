@@ -4,7 +4,7 @@ const del = require('del');
 const vfs = require('vinyl-fs');
 const path = require('path');
 const through2 = require('through2').obj;
-const StreamConcat = require('stream-concat');
+const merge2 = require('merge2');
 
 const prepareOptions = require('./prepare-options');
 const validateOptions = require('./validate-options');
@@ -115,7 +115,7 @@ function assetStream(sourceFolder, entryPoints, maxAge, s3Folder, patterns, gzip
  * related awspublish reporter stream
  */
 function publishInSeries(streams, opts) {
-  const combinedStream = new StreamConcat(streams, { objectMode: true });
+  const combinedStream = merge2(...streams);
 
   const publisher = awspublish.create(opts.s3options);
   const { publishStream, reporterStream } = prepareStreams(
