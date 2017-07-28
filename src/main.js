@@ -60,7 +60,7 @@ function s3Init(file, s3Folder) {
   file.s3.headers = {};       // eslint-disable-line no-param-reassign
   file.s3.path = file.path    // eslint-disable-line no-param-reassign
     .replace(file.base, s3Folder || '')
-    .replace(new RegExp(`\\${path.sep}g`), '/');
+    .replace(new RegExp(`\\${path.sep}`, 'g'), '/');
 }
 
 /*
@@ -154,4 +154,5 @@ module.exports = {
   prepareStreams,
   publishInSeries,
   publish,
+  s3Init,
 };
