@@ -1,14 +1,13 @@
-
 # Deploy projects 'atomically' to S3
 
 A simple utility for deploying projects pseudo-atomically to Amazon S3.
-It first uploads assets that have content hashes,
-and only then uploads entry points assets like `index.html`.
+It is designed to first upload assets that have content hashes, and
+only then upload entry points assets like `index.html`.
 
 Assets that are not entry points are also assigned a `max-age` header.
 If not entry points, files of type `css`, `json`, `js` and `svg` are
-compressed with gzip and the necessary S3 object metadata is added to
-allow them to be served properly.
+compressed with gzip. For all gzipped assets, the necessary S3 object
+metadata is added to allow them to be served properly.
 
 ## Install
 
@@ -76,14 +75,14 @@ atomicS3.publish(opts, (err, res) => {
 
 - `path`: Local path to folder to publish.
 - `entryPoints`: List of node glob patterns that together match all assets that *are* entry points, i.e. assets that do not have content hashes. Defaults to `['**/*.html']`, which matches only html files.
-- `maxAge`: Caching header to apply for assets that are not entry points. Defaults to `3600`.
+- `maxAge`: Value to use for the max-age header applied for assets that are not entry points. Defaults to `3600`.
 - `force`: Disable cache.
 
 ### Options only for command line API
 
 - `bucket`: Name of Amazon S3 bucket in which to publish. Required.
 - `region`: Amazon S3 region.
-- `verbose` Set to true with `--verbose` enable verbose output.
+- `verbose` Enable verbose output.
 
 ### Options only for config object
 
