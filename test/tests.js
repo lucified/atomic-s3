@@ -95,16 +95,15 @@ function assertS3(files, bucket, done) {
   });
 }
 
-
 describe('s3Init', () => {
-    it('sets the correct s3 path', () => {
-        const file = {
-            base: '/path/to/project/',
-            path: '/subdir/g-letter-at-start',
-        };
-        s3.s3Init(file);
-        expect(file.s3.path).to.equal('/subdir/g-letter-at-start');
-    });
+  it('sets the correct s3 path', () => {
+    const file = {
+      base: '/path/to/project/',
+      path: '/subdir/g-letter-at-start',
+    };
+    s3.s3Init(file);
+    expect(file.s3.path).to.equal('/subdir/g-letter-at-start');
+  });
 });
 
 describe('entrypoint-stream', () => {
